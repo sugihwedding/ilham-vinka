@@ -85,3 +85,50 @@ function showGiftOptions(){
   navigator.clipboard.writeText(lines).catch(()=>{});
   alert('Informasi hadiah telah disalin ke clipboard:\n\n'+lines);
 }
+
+// ===== Cover (splash) =====
+function getQueryParam(name){
+  const url = new URL(window.location.href);
+  return url.searchParams.get(name);
+}
+
+window.addEventListener('DOMContentLoaded', ()=>{
+  // Ambil nama tamu dari URL: ?to=Nama+Tamu (juga mendukung ?nama= / ?guest=)
+  const guest = getQueryParam('to') || getQueryParam('nama') || getQueryParam('guest');
+  if(guest){
+    const cleaned = decodeURIComponent(guest).replace(/\+/g,' ');
+    const span = document.getElementById('guestName');
+    if(span){ span.textContent = cleaned; }
+  }
+  // Tombol "Buka Undangan"
+  const btnOpen = document.getElementById('btnOpen');
+  const cover = document.getElementById('cover');
+  if(btnOpen && cover){
+    btnOpen.addEventListener('click', ()=>{
+      cover.classList.add('hide');
+      document.getElementById('hero')?.scrollIntoView({behavior:'smooth'});
+    });
+  }
+});
+// Nama tamu: title-case + sapaan otomatis/param
+const raw = getQueryParam('to') || getQueryParam('nama') || getQueryParam('guest') || '';
+const sapaanParam = getQueryParam('sapaan');
+if(raw){
+  const cleaned = decodeURIComponent(raw).replace(/\+/g,' ').trim();
+  const sal = inferSalutation(cleaned, sapaanParam); // Bapak/Ibu/Keluarga
+  const pure = cleaned.replace(/^((bpk|bapak|pak|ibu|bu|keluarga|kel|family)\.?\s*)/i,'');
+  const finalName = [sal, titleCase(pure)].filter(Boolean).join(' ');
+  document.getElementById('guestName').textContent = finalName || titleCase(cleaned);
+}
+
+// Spawn partikel kecil
+for(let i=0;i<30;i++){ /* bikin <span class="particle"> dengan delay/durasi acak */ }
+
+// Musik & gate
+btnMute.addEventListener('click', () => setMuted(!audio.muted));
+btnOpen.addEventListener('click', async () => {
+  try{ await audio.play(); }catch(e){}
+  cover.classList.add('hide');
+  document.body.classList.remove('no-scroll'); // buka scroll
+  document.getElementById('hero').scrollIntoView({behavior:'smooth'});
+});
